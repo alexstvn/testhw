@@ -9,7 +9,7 @@ import calendar.controller.commands.editevents.CommandEditEvent;
 import calendar.controller.commands.editevents.CommandEditEvents;
 import calendar.controller.commands.editevents.CommandEditSeries;
 import calendar.model.InterfaceCalendar;
-import calendar.view.InterfaceView;
+import calendar.view.terminalView.InterfaceView;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

@@ -1,4 +1,4 @@
-package calendar.view;
+package calendar.view.terminalView;
 
 import java.io.IOException;
 import java.util.Objects;

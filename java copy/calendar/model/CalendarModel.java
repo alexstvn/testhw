@@ -4,7 +4,6 @@ import calendar.model.export.InterfaceExportFormat;
 import calendar.model.filter.FilterByDateTime;
 import calendar.model.filter.InterfaceFilter;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -21,9 +20,6 @@ import java.util.TreeSet;
 public class CalendarModel implements InterfaceCalendar {
   private final SortedSet<InterfaceEvent> allEvents;
   private final List<InterfaceSeries> allSeries;
-
-  private static final LocalTime START_TIME_OF_DAY = LocalTime.of(8, 0);
-  private static final LocalTime END_TIME_OF_DAY = LocalTime.of(17, 0);
 
   private final EventsEditor editor;
   private final EventValidator eventValidator;

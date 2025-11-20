@@ -8,7 +8,7 @@ import calendar.controller.commands.copy.CommandCopyEventsBetween;
 import calendar.controller.commands.copy.CommandCopyEventsOn;
 import calendar.model.InterfaceCalendar;
 import calendar.model.InterfaceCalendarModels;
-import calendar.view.InterfaceView;
+import calendar.view.terminalView.InterfaceView;
 import java.util.Objects;
 
 /**

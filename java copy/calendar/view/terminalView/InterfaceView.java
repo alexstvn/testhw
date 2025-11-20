@@ -1,4 +1,4 @@
-package calendar.view;
+package calendar.view.terminalView;
 
 /**
  * Represents output viewer of a model.
