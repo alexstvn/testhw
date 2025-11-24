@@ -7,9 +7,10 @@ import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -17,16 +18,10 @@ import javax.swing.JPanel;
 
 /**
  * Header panel that displays calendar information and navigation controls.
- * Handles its own button events and delegates to the controller.
+ * Emits high-level feature requests to controller via CalendarFeatures interface.
+ * NO direct manipulation of model or business logic.
  */
 public class HeaderPanel extends JPanel implements InterfaceHeaderPanel {
-  // Action command constants
-  private static final String ACTION_SWITCH_CALENDAR = "SWITCH_CALENDAR";
-  private static final String ACTION_EDIT_CALENDAR = "EDIT_CALENDAR";
-  private static final String ACTION_NEXT_MONTH = "NEXT_MONTH";
-  private static final String ACTION_PREV_MONTH = "PREV_MONTH";
-  private static final String ACTION_EDIT_EVENTS_SAME_NAME = "EDIT_EVENTS_SAME_NAME";
-
   // Calendar info - received from MainView
   private String calendarName;
   private String timeZone;
@@ -40,29 +35,28 @@ public class HeaderPanel extends JPanel implements InterfaceHeaderPanel {
   private JButton switchOrAddCalendarButton;
   private JButton editEventsSameNameButton;
 
-  // Current month/year for navigation
+  // Current month/year for display
   private int currentYear;
   private int currentMonth;
 
-  // Controller reference
-  private Features controller;
-  private Runnable refreshCallback;
+  // Feature listeners (controller implements this)
+  private List<Features> featureListeners;
 
   /**
    * Creates a new HeaderPanel with the specified calendar information.
-   * Data is provided by MainView, which manages all calendar state.
+   * Data is provided by MainView, which gets it from the controller.
    *
    * @param calendarName the active calendar name from MainView
    * @param timeZone the active calendar timezone from MainView
    */
   public HeaderPanel(String calendarName, String timeZone) {
+    this.featureListeners = new ArrayList<>();
     this.timeZone = timeZone;
     this.calendarName = calendarName;
     LocalDate now = LocalDate.now();
     this.currentYear = now.getYear();
     this.currentMonth = now.getMonthValue();
     initializeComponents();
-    // Note: Calendar switcher is set up by MainView after construction
   }
 
   private void initializeComponents() {
@@ -82,71 +76,53 @@ public class HeaderPanel extends JPanel implements InterfaceHeaderPanel {
   }
 
   /**
-   * Sets the controller and wires up all button action listeners.
-   *
-   * @param controller the controller to handle button events
-   * @param refreshCallback callback to refresh MainView state after calendar operations
+   * Adds a feature listener (typically the controller).
+   * This is the ONLY way the panel communicates with the controller.
    */
-  public void setController(Features controller, Runnable refreshCallback) {
-    this.controller = controller;
-    this.refreshCallback = refreshCallback;
-    wireButtons();
+  public void addFeaturesListener(Features featureListener) {
+    featureListeners.add(featureListener);
+    // Wire buttons only after we have a listener
+    if (featureListeners.size() == 1) {
+      wireButtons();
+    }
   }
 
+  /**
+   * Wires all buttons to emit feature requests.
+   * Uses high-level, application-specific callbacks instead of low-level ActionListener.
+   */
   private void wireButtons() {
-    // Wire switch calendar button
-    switchOrAddCalendarButton.setActionCommand(ACTION_SWITCH_CALENDAR);
-    switchOrAddCalendarButton.addActionListener(this::actionPerformed);
+    // Switch calendar button
+    switchOrAddCalendarButton.addActionListener(e -> {
+      for (Features f : featureListeners) {
+        f.handleSwitchCalendar();
+      }
+    });
 
-    // Wire edit calendar button
-    editCalendarButton.setActionCommand(ACTION_EDIT_CALENDAR);
-    editCalendarButton.addActionListener(this::actionPerformed);
+    editCalendarButton.addActionListener(e -> {
+      for (Features f : featureListeners) {
+        f.handleEditCalendar();
+      }
+    });
 
-    // Wire edit events same name button
-    editEventsSameNameButton.setActionCommand(ACTION_EDIT_EVENTS_SAME_NAME);
-    editEventsSameNameButton.addActionListener(this::actionPerformed);
+    editEventsSameNameButton.addActionListener(e -> {
+      for (Features f : featureListeners) {
+        f.handleEditEventsWithSameName();
+      }
+    });
 
-    // Wire navigation buttons
-    prevButton.setActionCommand(ACTION_PREV_MONTH);
-    prevButton.addActionListener(this::actionPerformed);
+    prevButton.addActionListener(e -> {
+      for (Features f : featureListeners) {
+        f.previousMonth();
+      }
+    });
 
-    nextButton.setActionCommand(ACTION_NEXT_MONTH);
-    nextButton.addActionListener(this::actionPerformed);
-  }
-
-  private void actionPerformed(ActionEvent e) {
-    if (controller == null) {
-      return;
-    }
-
-    String command = e.getActionCommand();
-
-    switch (command) {
-      case ACTION_SWITCH_CALENDAR:
-        controller.handleSwitchCalendar();
-        if (refreshCallback != null) {
-          refreshCallback.run();
-        }
-        break;
-      case ACTION_EDIT_CALENDAR:
-        controller.handleEditCalendar();
-        if (refreshCallback != null) {
-          refreshCallback.run();
-        }
-        break;
-      case ACTION_EDIT_EVENTS_SAME_NAME:
-        controller.handleEditEventsWithSameName();
-        break;
-      case ACTION_NEXT_MONTH:
-        controller.nextMonth();
-        break;
-      case ACTION_PREV_MONTH:
-        controller.previousMonth();
-        break;
-      default:
-        // Unknown action - ignore
-        break;
-    }
+    // Next month button
+    nextButton.addActionListener(e -> {
+      for (Features f : featureListeners) {
+        f.nextMonth();
+      }
+    });
   }
 
   private JPanel createCalendarNamePanel() {
@@ -206,10 +182,9 @@ public class HeaderPanel extends JPanel implements InterfaceHeaderPanel {
     return panel;
   }
 
-
   /**
    * Updates the calendar information displayed in the header.
-   * This method should be called by MainView when calendar data changes.
+   * This method is called by MainView when calendar data changes.
    *
    * @param calendarName the new calendar name from MainView
    * @param timeZone the new timezone from MainView

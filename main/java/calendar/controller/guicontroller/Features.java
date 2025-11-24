@@ -13,16 +13,6 @@ import java.util.TimeZone;
  * while the view delegates user actions through these methods.
  */
 public interface Features {
-
-  // MARK: REFRESH STATE
-  /**
-   * Runs the calendar application.
-   * Initializes the view and loads initial data.
-   */
-  void run();
-
-  // MARK: BUTTON HANDLERS
-
   /**
    * Handles the switch calendar button click.
    * Shows dialog through view, processes selection, updates model and view.
@@ -90,15 +80,6 @@ public interface Features {
    * @param date the date to select and view
    */
   void selectDay(LocalDate date);
-
-  // MARK: QUERY METHODS
-
-  /**
-   * Gets the currently active calendar.
-   *
-   * @return the active calendar, or null if none is active
-   */
-  InterfaceCalendar getActiveCalendar();
 
   /**
    * Gets all events scheduled on a specific date in the active calendar.

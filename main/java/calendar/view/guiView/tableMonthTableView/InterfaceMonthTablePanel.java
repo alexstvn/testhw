@@ -1,6 +1,6 @@
 package calendar.view.guiView.tableMonthTableView;
 
-import calendar.model.InterfaceEvent;
+import calendar.view.guiView.adapter.IViewEvent;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +26,7 @@ public interface InterfaceMonthTablePanel {
    *
    * @param events map of dates to list of events on that date (from Controller)
    */
-  void setEvents(Map<LocalDate, List<InterfaceEvent>> events);
+  void setEvents(Map<LocalDate, List<IViewEvent>> events);
 
   /**
    * Sets the currently selected date.

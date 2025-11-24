@@ -17,6 +17,7 @@ import java.awt.CardLayout;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
 import javax.swing.BorderFactory;
@@ -100,7 +101,7 @@ public class MainView extends JFrame implements InterfaceGuiView {
     add(mainPanel, BorderLayout.CENTER);
     cardLayout.show(mainPanel, "MONTH");
 
-    display();
+//    display();
   }
 
   @Override
@@ -118,11 +119,12 @@ public class MainView extends JFrame implements InterfaceGuiView {
     // Update the UI with the fetched information
     updateCalendarDisplay();
 
-    // Pass controller to sub-panels so they can handle their own events
-    headerPanel.setController(f, this::refreshAfterCalendarOperation);
+    // NEW: Use addFeaturesListener instead of setController
+    headerPanel.addFeaturesListener(f);
+
     dayViewPanel.setController(f);
     dayViewPanel.setBackToMonthCallback(() -> {
-      eventDetailsPanel.setVisible(false);  // Hide details when going back
+      eventDetailsPanel.setVisible(false);
       cardLayout.show(mainPanel, "MONTH");
     });
     monthTablePanel.setController(f);
@@ -214,7 +216,7 @@ public class MainView extends JFrame implements InterfaceGuiView {
       TimeZone timezone = dialog.getTimezone();
       return new CalendarInfo(name, timezone);
     }
-    return null; // Cancelled
+    return null;
   }
 
   @Override
@@ -278,7 +280,7 @@ public class MainView extends JFrame implements InterfaceGuiView {
   }
 
   @Override
-  public void setMonthEvents(java.util.Map<LocalDate, java.util.List<calendar.model.InterfaceEvent>> events) {
+  public void setMonthEvents(Map<LocalDate, List<IViewEvent>> events) {
     monthTablePanel.setEvents(events);
   }
 

@@ -1,7 +1,6 @@
 package calendar.view.guiView;
 
 import calendar.controller.guicontroller.Features;
-import calendar.model.InterfaceEvent;
 import calendar.view.guiView.adapter.IViewEvent;
 import calendar.view.guiView.editEventsSameNameView.EditEventsSameNameDialog;
 import calendar.view.guiView.editEventView.EditEventDialog;
@@ -46,7 +45,7 @@ public interface InterfaceGuiView extends InterfaceView {
    *
    * @param events map of dates to list of events for that date
    */
-  void setMonthEvents(Map<LocalDate, List<InterfaceEvent>> events);
+  void setMonthEvents(Map<LocalDate, List<IViewEvent>> events);
 
   // ===================== DIALOG METHODS (for Controller to request user input) =====================
 

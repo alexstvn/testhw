@@ -1,7 +1,7 @@
 package calendar.view.guiView.tableMonthTableView;
 
 import calendar.controller.guicontroller.Features;
-import calendar.model.InterfaceEvent;
+import calendar.view.guiView.adapter.IViewEvent;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -44,7 +44,7 @@ public class MonthTablePanel extends JPanel implements InterfaceMonthTablePanel 
   private static final Color EVENT_TEXT = new Color(0, 100, 0);
   private static final Color MORE_EVENTS_TEXT = Color.GRAY;
 
-  private Map<LocalDate, List<InterfaceEvent>> eventsMap;
+  private Map<LocalDate, List<IViewEvent>> eventsMap;
   private LocalDate selectedDate;
   private Map<LocalDate, JPanel> dateCellPanels;
   private int currentYear;
@@ -95,7 +95,7 @@ public class MonthTablePanel extends JPanel implements InterfaceMonthTablePanel 
   }
 
   @Override
-  public void setEvents(Map<LocalDate, List<InterfaceEvent>> events) {
+  public void setEvents(Map<LocalDate, List<IViewEvent>> events) {
     this.eventsMap = events != null ? events : new HashMap<>();
     refresh();
   }
@@ -130,7 +130,7 @@ public class MonthTablePanel extends JPanel implements InterfaceMonthTablePanel 
       LocalDate date = startDate.plusDays(i);
       boolean isCurrentMonth = date.getMonthValue() == currentMonth;
       boolean isToday = date.equals(today);
-      List<InterfaceEvent> dayEvents = eventsMap.getOrDefault(date, new ArrayList<>());
+      List<IViewEvent> dayEvents = eventsMap.getOrDefault(date, new ArrayList<>());
 
       JPanel cell = createDateCell(date, isToday, isCurrentMonth, dayEvents);
       dateCellPanels.put(date, cell);
@@ -139,7 +139,7 @@ public class MonthTablePanel extends JPanel implements InterfaceMonthTablePanel 
   }
 
   private JPanel createDateCell(LocalDate date, boolean isToday,
-                                 boolean isCurrentMonth, List<InterfaceEvent> events) {
+                                 boolean isCurrentMonth, List<IViewEvent> events) {
     JPanel cellPanel = new JPanel(new BorderLayout());
     cellPanel.setBorder(BorderFactory.createLineBorder(CELL_BORDER));
 
@@ -195,7 +195,7 @@ public class MonthTablePanel extends JPanel implements InterfaceMonthTablePanel 
     cellPanel.add(topPanel, BorderLayout.NORTH);
   }
 
-  private void addEventsList(JPanel cellPanel, List<InterfaceEvent> events) {
+  private void addEventsList(JPanel cellPanel, List<IViewEvent> events) {
     if (events == null || events.isEmpty()) {
       return;
     }
@@ -217,7 +217,7 @@ public class MonthTablePanel extends JPanel implements InterfaceMonthTablePanel 
     cellPanel.add(eventsPanel, BorderLayout.CENTER);
   }
 
-  private JLabel createEventLabel(InterfaceEvent event) {
+  private JLabel createEventLabel(IViewEvent event) {
     String eventText = event.getSubject();
     if (eventText.length() > EVENT_TEXT_MAX_LENGTH) {
       eventText = eventText.substring(0, EVENT_TEXT_TRUNCATE_LENGTH) + "..";

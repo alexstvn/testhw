@@ -2,6 +2,7 @@ package calendar.controller.guicontroller;
 
 import static javax.swing.SwingUtilities.getWindowAncestor;
 
+import calendar.controller.InterfaceController;
 import calendar.model.CalendarModel;
 import calendar.model.EventRequest;
 import calendar.model.InterfaceCalendar;
@@ -15,7 +16,6 @@ import calendar.view.guiView.InterfaceGuiView;
 import calendar.view.guiView.adapter.IViewEvent;
 import calendar.view.guiView.adapter.ViewEventDaily;
 import calendar.view.guiView.createEventView.CreateEventDialog;
-import calendar.view.guiView.dayView.EventDetailsPanel;
 import calendar.view.guiView.editEventsSameNameView.EditEventsSameNameDialog;
 import calendar.view.guiView.editEventView.EditEventDialog;
 import java.awt.Component;
@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
@@ -32,15 +33,14 @@ import java.util.stream.Collectors;
  * Controller for the GUI calendar application.
  * Coordinates interactions between the model and view components.
  */
-public class GuiCalendarController implements Features {
+public class GuiCalendarController implements Features, InterfaceController {
   private final InterfaceCalendarModels models;
   private final InterfaceGuiView view;
   private final List<String> calendarNames;
 
   private int currentYear;
   private int currentMonth;
-  private LocalDate currentDayView;  // Track which day is being viewed
-  private EventDetailsPanel eventDetailsPanel;
+  private LocalDate currentDayView;
 
   /**
    * Creates a new GUI calendar controller.
@@ -51,21 +51,16 @@ public class GuiCalendarController implements Features {
   public GuiCalendarController(InterfaceCalendarModels models, InterfaceGuiView view) {
     this.models = models;
     this.view = view;
-    this.calendarNames = new java.util.ArrayList<>();
+    this.calendarNames = new ArrayList<>();
     this.currentYear = LocalDate.now().getYear();
     this.currentMonth = LocalDate.now().getMonthValue();
     this.currentDayView = null;  // No day selected initially
-    eventDetailsPanel = new EventDetailsPanel();
 
     // Initialize default calendar with user's timezone BEFORE adding features to view
     initializeDefaultCalendar();
 
     // Add features to view (this will wire up action events and update display)
     this.view.addFeatures(this);
-
-    // Note: View coordination now happens through action events
-    // MainView wires buttons → fires ActionEvents → calls controller methods
-    // No need for callback setup
   }
 
   /**
@@ -84,8 +79,6 @@ public class GuiCalendarController implements Features {
     calendarNames.add("default");
   }
 
-  // MARK: REFRESH STATE
-
   @Override
   public void run() {
     // Load events for the initial month
@@ -93,28 +86,23 @@ public class GuiCalendarController implements Features {
     view.display();
   }
 
-  // MARK: BUTTON HANDLERS
-
   @Override
   public void handleSwitchCalendar() {
-    // Ask view to show dialog with current calendar list
     String selectedCalendar = view.showCalendarSelectorDialog(getAllCalendarNames());
 
     if (selectedCalendar == null) {
-      // User cancelled
       return;
     }
 
     if (selectedCalendar.equals("::ADD_NEW::")) {
-      // User wants to add a new calendar instead
       handleAddCalendar();
       return;
     }
 
-    // User selected a calendar - update model
     selectCalendar(selectedCalendar);
 
-    // Update view
+    // Update view with new calendar info
+    view.refresh();
     view.setMonthYear(currentYear, currentMonth);
     loadEventsForMonth();
   }
@@ -184,6 +172,7 @@ public class GuiCalendarController implements Features {
     }
 
     // Update view
+    view.refresh();
     view.setMonthYear(currentYear, currentMonth);
     loadEventsForMonth();
   }
@@ -711,7 +700,7 @@ public class GuiCalendarController implements Features {
   public void loadEventsForMonth() {
     InterfaceCalendar activeCalendar = models.getActiveCalendar();
     if (activeCalendar == null) {
-      view.setMonthEvents(new java.util.HashMap<>());
+      view.setMonthEvents(new HashMap<>());
       return;
     }
 
@@ -729,7 +718,7 @@ public class GuiCalendarController implements Features {
 
     // Group events by date
     // For multi-day events, add them to each date they span
-    java.util.Map<LocalDate, List<InterfaceEvent>> eventsMap = new HashMap<>();
+    Map<LocalDate, List<IViewEvent>> eventsMap = new HashMap<>();
     for (InterfaceEvent event : events) {
       LocalDate eventStart = event.getStartDateTime().toLocalDate();
       LocalDate eventEnd = event.getEndDateTime().toLocalDate();
@@ -739,7 +728,7 @@ public class GuiCalendarController implements Features {
       LocalDate lastDate = eventEnd.isAfter(endDate) ? endDate : eventEnd;
 
       while (!currentDate.isAfter(lastDate)) {
-        eventsMap.computeIfAbsent(currentDate, k -> new ArrayList<>()).add(event);
+        eventsMap.computeIfAbsent(currentDate, k -> new ArrayList<>()).add(new EventAdapter(event));
         currentDate = currentDate.plusDays(1);
       }
     }
@@ -800,7 +789,7 @@ public class GuiCalendarController implements Features {
 
   @Override
   public List<String> getAllCalendarNames() {
-    return new java.util.ArrayList<>(calendarNames);
+    return new ArrayList<>(calendarNames);
   }
 
   @Override
